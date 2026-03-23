@@ -1,121 +1,175 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+// import "dotenv/config";
+// // console.log(process.env.VITE_NASA_API_KEY);
+
+import { useState, useEffect } from "react";
+import testImages from "./utils/nasa-response";
+import { shuffleArray } from "./utils";
+
+import "./App.css";
+import "./styles/index.css";
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [rawImages, setRawImages] = useState([]);
+  const [gameImages, setGameImages] = useState([]);
+  const [selectedImages, setSelectedImages] = useState([]);
+  const [highScore, setHighScore] = useState(0);
+  const [gameStatus, setGameStatus] = useState("intro");
+  const [level, setLevel] = useState(3);
+
+  const handleLevelChange = (event) => {
+    setLevel(event.target.value);
+  };
+
+  function handlePlayButtonClick() {
+    console.log("click");
+    console.log(level);
+    setGameStatus("playing");
+    setSelectedImages([]);
+    setGameImages(rawImages.slice(0, level));
+  }
+
+  const currentScore = selectedImages.length;
+
+  function handleCardClick(id) {
+    console.log("CLICKED", id);
+
+    if (!id) {
+      throw new Error("No ID Passed from card");
+    }
+
+    if (selectedImages.includes(id)) {
+      setGameStatus("lose");
+    } else if (!selectedImages.includes(id)) {
+      if (currentScore >= highScore) setHighScore(currentScore + 1);
+
+      setSelectedImages([...selectedImages, id]);
+      setGameImages(shuffleArray(gameImages));
+
+      if (currentScore + 1 >= gameImages.length) setGameStatus("win");
+    }
+    // else {
+    // }
+  }
+
+  useEffect(() => {
+    async function fetchData() {
+      console.log("API CALL");
+      const key = import.meta.env.VITE_NASA_API_KEY;
+
+      const url = `https://api.nasa.gov/planetary/apod?api_key=${key}&count=20`;
+      try {
+        // const response = await fetch(url);
+        // console.log(response);
+        // if (!response.ok) {
+        //   throw new Error(`Response status: ${response.status}`);
+        // }
+
+        // const result = await response.json();
+        const result = testImages; // TEMPORARY input to not constantly hit the API
+
+        const images = result
+          .filter(({ media_type }) => media_type === "image")
+          .slice(0, 20);
+        console.log(images);
+
+        setRawImages(images);
+      } catch (error) {
+        console.error(error.message);
+      }
+    }
+
+    fetchData();
+  }, []);
 
   return (
     <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
+      <header className="header">
+        <div className="title-container">GAME TITLE</div>
+        <div className="score-board">
           <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
+            current score: <span>{currentScore}</span>
+          </p>
+          <p>
+            highest score: <span>{highScore}</span>
           </p>
         </div>
-        <button
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+      </header>
 
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
+      {gameStatus === "playing" ? (
+        <GameBoard
+          images={gameImages}
+          handleCardClick={handleCardClick}
+          level={level}
+        />
+      ) : (
+        <Dialogue
+          gameStatus={gameStatus}
+          handleClick={handlePlayButtonClick}
+          handleChange={handleLevelChange}
+          level={level}
+        />
+      )}
     </>
-  )
+  );
 }
 
-export default App
+function Dialogue({ gameStatus, handleClick, handleChange, level }) {
+  const message =
+    gameStatus === "intro"
+      ? "Welcome to the memory game, dont select the same card twice"
+      : gameStatus === "win"
+        ? "Congrats, you win."
+        : "Sorry, you lose.";
+
+  return (
+    <div className="dialogue-master">
+      <div className="dialogue-container">
+        <div className="message-container">
+          <p>{message}</p>
+        </div>
+
+        <button onClick={handleClick}>
+          {gameStatus === "intro" ? "Play" : "Play Again"}
+        </button>
+
+        <div className="select-container">
+          <label>Choose a difficulty: </label>
+          <select value={level} onChange={handleChange}>
+            <option value={3}>Easy</option>
+            <option value={12}>Medium</option>
+            <option value={20}>Hard</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function GameBoard({ images, handleCardClick, level }) {
+  return (
+    <div className="game-board">
+      {images.slice(0, level).map(({ date, title, url }) => (
+        <Card
+          url={url}
+          key={date}
+          title={title}
+          id={date}
+          handleClick={handleCardClick}
+        />
+      ))}
+    </div>
+  );
+}
+
+function Card(props) {
+  const { url, title, id, handleClick } = props;
+
+  return (
+    <div className="card" onClick={() => handleClick(id)}>
+      <img src={url} alt={title} />
+      <p>{title}</p>
+    </div>
+  );
+}
+
+export default App;

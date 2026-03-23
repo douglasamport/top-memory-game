@@ -1,0 +1,25 @@
+.dialogue-master {
+  display: flex;
+  justify-content: center;
+  padding: 2em;
+}
+
+.dialogue-container {
+  display: flex;
+  flex-flow: column;
+  align-items: center;
+  width: 350px;
+  background-color: lightblue;
+  color: black;
+  padding: 2em;
+  border: solid 3px black;
+  border-radius: 20px;
+  row-gap: 10px;
+}
+
+.dialogue-container button,
+.dialogue-container select {
+  padding: 5px 10px 5px 10px;
+  border-radius: 5px;
+  border: none;
+}
