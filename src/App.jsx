@@ -107,26 +107,49 @@ function App() {
           handleClick={handlePlayButtonClick}
           handleChange={handleLevelChange}
           level={level}
+          selectedImages={selectedImages}
+          highScore={highScore}
         />
       )}
     </>
   );
 }
 
-function Dialogue({ gameStatus, handleClick, handleChange, level }) {
+function Dialogue({
+  gameStatus,
+  handleClick,
+  handleChange,
+  level,
+  selectedImages,
+  highScore,
+}) {
   const message =
-    gameStatus === "intro"
-      ? "Welcome to the memory game, dont select the same card twice"
-      : gameStatus === "win"
-        ? "Congrats, you win."
-        : "Sorry, you lose.";
+    gameStatus === "intro" ? (
+      <p>
+        "Welcome to the memory game!
+        <br />
+        Each turn you will select a card. To win don't select the same card
+        twice"{" "}
+      </p>
+    ) : gameStatus === "win" ? (
+      <p>
+        Congratulations, You Win!
+        <br />
+        {`Your high score was ${highScore} `}
+      </p>
+    ) : (
+      <p>
+        Nice try!
+        <br />
+        {`Your score was ${selectedImages.length}`}
+        <br /> {`and your high score was ${highScore} `}
+      </p>
+    );
 
   return (
     <div className="dialogue-master">
       <div className="dialogue-container">
-        <div className="message-container">
-          <p>{message}</p>
-        </div>
+        <div className="message-container">{message}</div>
 
         <button onClick={handleClick}>
           {gameStatus === "intro" ? "Play" : "Play Again"}
